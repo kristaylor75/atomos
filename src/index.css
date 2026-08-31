@@ -1,0 +1,886 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    overflow: visible;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    max-height: 1000px;
+    overflow: hidden;
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+}
+
+@layer base {
+  :root {
+    /* Core palette — dark charcoal neumorphic */
+    --background: 220 16% 10%;
+    --foreground: 220 20% 92%;
+
+    --card: 220 16% 13%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 220 16% 13%;
+    --popover-foreground: 220 20% 92%;
+
+    /* Blue accent */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 220 15% 70%;
+
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 12% 50%;
+
+    --accent: 220 14% 20%;
+    --accent-foreground: 220 20% 92%;
+
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 20%;
+    --input: 220 14% 16%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* Neumorphic shadow tokens */
+    --neu-light: rgba(255,255,255,0.05);
+    --neu-dark: rgba(0,0,0,0.45);
+    --neu-inset-light: rgba(255,255,255,0.04);
+    --neu-inset-dark: rgba(0,0,0,0.4);
+
+    /* Fonts */
+    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+    /* Sidebar */
+    --sidebar-background: 220 18% 8%;
+    --sidebar-foreground: 220 15% 70%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 14%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 220 14% 14%;
+    --sidebar-ring: 217 91% 60%;
+
+    --chart-1: 217 91% 60%;
+    --chart-2: 173 58% 45%;
+    --chart-3: 38 92% 60%;
+    --chart-4: 280 65% 65%;
+    --chart-5: 340 75% 58%;
+  }
+
+  /* No separate .dark block — this IS the dark theme */
+  .dark {
+    --background: 220 16% 10%;
+    --foreground: 220 20% 92%;
+    --card: 220 16% 13%;
+    --card-foreground: 220 20% 92%;
+    --popover: 220 16% 13%;
+    --popover-foreground: 220 20% 92%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 220 15% 70%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 12% 50%;
+    --accent: 220 14% 20%;
+    --accent-foreground: 220 20% 92%;
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 20%;
+    --input: 220 14% 16%;
+    --ring: 217 91% 60%;
+    --sidebar-background: 220 18% 8%;
+    --sidebar-foreground: 220 15% 70%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 14%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 220 14% 14%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+
+  /* ── Neumorphic surface card ─────────────────────────────── */
+  .neu-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow:
+      4px 4px 10px var(--neu-dark),
+      -2px -2px 6px var(--neu-light);
+  }
+
+  /* Inset / pressed surface */
+  .neu-inset {
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow:
+      inset 2px 2px 6px var(--neu-inset-dark),
+      inset -1px -1px 3px var(--neu-inset-light);
+  }
+
+  /* ── Calculator buttons ──────────────────────────────────── */
+  .calc-btn {
+    @apply h-10 rounded-xl font-medium text-sm transition-all select-none flex items-center justify-center;
+    box-shadow:
+      3px 3px 7px var(--neu-dark),
+      -1px -1px 4px var(--neu-light);
+    transform: translateY(0);
+    transition: box-shadow 0.1s ease, transform 0.08s ease, background-color 0.1s ease;
+  }
+
+  .calc-btn:hover {
+    box-shadow:
+      4px 4px 9px var(--neu-dark),
+      -2px -2px 5px var(--neu-light);
+  }
+
+  .calc-btn:active,
+  .calc-btn.pressed {
+    transform: translateY(1px);
+    box-shadow:
+      inset 2px 2px 5px var(--neu-inset-dark),
+      inset -1px -1px 3px var(--neu-inset-light);
+  }
+
+  /* ── Primary action button ───────────────────────────────── */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground font-semibold rounded-xl py-2.5 w-full text-sm transition-all;
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.3),
+      0 4px 14px hsl(var(--primary) / 0.35),
+      3px 3px 8px var(--neu-dark);
+  }
+  .btn-primary:hover {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.5),
+      0 4px 20px hsl(var(--primary) / 0.5),
+      3px 3px 8px var(--neu-dark);
+    filter: brightness(1.08);
+  }
+  .btn-primary:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 2px 2px 5px hsl(var(--primary) / 0.4),
+      0 2px 8px hsl(var(--primary) / 0.3);
+  }
+
+  /* ── Input fields ────────────────────────────────────────── */
+  .neu-input {
+    @apply w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-all;
+    background: hsl(var(--input));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+    box-shadow:
+      inset 2px 2px 5px var(--neu-inset-dark),
+      inset -1px -1px 3px var(--neu-inset-light);
+  }
+  .neu-input:focus {
+    outline: none;
+    border-color: hsl(var(--primary) / 0.6);
+    box-shadow:
+      inset 2px 2px 5px var(--neu-inset-dark),
+      inset -1px -1px 3px var(--neu-inset-light),
+      0 0 0 3px hsl(var(--primary) / 0.15);
+  }
+  .neu-input::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ── Section panel ───────────────────────────────────────── */
+  .panel {
+    @apply rounded-2xl overflow-hidden;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.8);
+    box-shadow:
+      5px 5px 12px var(--neu-dark),
+      -2px -2px 6px var(--neu-light);
+  }
+
+  /* ── Pill badge ──────────────────────────────────────────── */
+  .badge-pill {
+    @apply text-xs font-semibold px-2.5 py-0.5 rounded-full;
+  }
+
+  /* ── Tab selector ────────────────────────────────────────── */
+  .tab-bar {
+    @apply flex gap-1 p-1 rounded-xl;
+    background: hsl(var(--muted));
+    box-shadow:
+      inset 2px 2px 5px var(--neu-inset-dark),
+      inset -1px -1px 3px var(--neu-inset-light);
+  }
+  .tab-item {
+    @apply flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all;
+    color: hsl(var(--muted-foreground));
+  }
+  .tab-item:hover {
+    color: hsl(var(--foreground));
+  }
+  .tab-item.active {
+    color: hsl(var(--foreground));
+    background: hsl(var(--card));
+    box-shadow:
+      2px 2px 6px var(--neu-dark),
+      -1px -1px 3px var(--neu-light);
+  }
+
+  /* ── Display screen (calculator, converter output) ───────── */
+  .display-screen {
+    @apply rounded-2xl px-5 py-4;
+    background: hsl(220 18% 7%);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow:
+      inset 3px 3px 10px rgba(0,0,0,0.65),
+      inset -1px -1px 4px rgba(255,255,255,0.03),
+      0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* ── Glassmorphic overlay ─────────────────────────────────── */
+  .glass-panel {
+    background: rgba(18, 21, 28, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  /* ── Nav item active glow ────────────────────────────────── */
+  .nav-active {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow:
+      0 0 12px hsl(var(--primary) / 0.4),
+      2px 2px 6px var(--neu-dark);
+  }
+
+}
+
+/* ── Leaflet map theming ──────────────────────────────────────── */
+.leaflet-container {
+  background: hsl(var(--muted)) !important;
+  font-family: var(--font-body) !important;
+}
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 4px 4px 10px var(--neu-dark), -2px -2px 6px var(--neu-light) !important;
+}
+.leaflet-popup-tip { background: hsl(var(--card)) !important; }
+.leaflet-control-zoom a {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+.leaflet-control-attribution {
+  background: hsl(var(--card) / 0.85) !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+.skin-pip-boy .leaflet-tile-pane {
+  filter: grayscale(1) sepia(1) hue-rotate(68deg) saturate(1.8) brightness(0.78) contrast(1.35) !important;
+}
+.skin-pip-boy .leaflet-control-zoom a,
+.skin-pip-boy .leaflet-popup-content-wrapper {
+  border: 1px solid #1f5c1f !important;
+  border-radius: 0 !important;
+}
+.skin-ham-radio .leaflet-tile-pane {
+  filter: sepia(1) hue-rotate(-15deg) saturate(1.5) brightness(0.9) contrast(1.2) !important;
+}
+.skin-ham-radio .leaflet-control-zoom a,
+.skin-ham-radio .leaflet-popup-content-wrapper {
+  border: 1px solid #3a3020 !important;
+  border-radius: 4px !important;
+}
+.skin-graphing-calc .leaflet-tile-pane {
+  filter: grayscale(1) sepia(0.25) brightness(1.05) contrast(0.95) !important;
+}
+.skin-graphing-calc .leaflet-control-zoom a,
+.skin-graphing-calc .leaflet-popup-content-wrapper {
+  border: 2px solid #555 !important;
+  border-radius: 0 !important;
+}
+.skin-audio-rack .leaflet-tile-pane {
+  filter: grayscale(1) brightness(0.92) contrast(1.2) sepia(0.3) hue-rotate(60deg) saturate(1.4) !important;
+}
+.skin-audio-rack .leaflet-control-zoom a,
+.skin-audio-rack .leaflet-popup-content-wrapper {
+  border: 1px solid #2a2a2a !important;
+  border-radius: 2px !important;
+}
+.skin-retro-scifi .leaflet-tile-pane {
+  filter: grayscale(1) sepia(1) hue-rotate(175deg) saturate(1.5) brightness(0.8) contrast(1.25) !important;
+}
+.skin-retro-scifi .leaflet-control-zoom a,
+.skin-retro-scifi .leaflet-popup-content-wrapper {
+  border: 2px solid hsl(var(--border)) !important;
+  border-radius: 0 !important;
+}
+
+/* ── Volume slider track & thumb ─────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: hsl(var(--border));
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  box-shadow: 0 0 6px hsl(var(--primary) / 0.5), 0 1px 3px rgba(0,0,0,0.6);
+  border: 1px solid hsl(var(--primary) / 0.8);
+  transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  box-shadow: 0 0 6px hsl(var(--primary) / 0.5);
+  border: 1px solid hsl(var(--primary) / 0.8);
+}
+
+/* Graphing calc: square thumb */
+.skin-graphing-calc input[type="range"]::-webkit-slider-thumb {
+  border-radius: 0 !important;
+  box-shadow: 1px 1px 0 #333 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SKIN: HAM RADIO — Matte black brushed metal, amber LED display
+   ═══════════════════════════════════════════════════════════════ */
+.skin-ham-radio body,
+.skin-ham-radio {
+  font-family: 'Courier New', Courier, monospace !important;
+  background: hsl(35 12% 6%) !important;
+}
+
+.skin-ham-radio .display-screen {
+  background: #0a0800 !important;
+  border: 2px solid #3a2e00 !important;
+  border-radius: 4px !important;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.9),
+    inset 0 0 8px rgba(255,160,0,0.08),
+    0 0 12px rgba(255,140,0,0.15),
+    2px 2px 0 #000 !important;
+}
+
+.skin-ham-radio .display-screen * {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 0 8px rgba(255,160,0,0.7), 0 0 2px rgba(255,160,0,0.5) !important;
+}
+
+.skin-ham-radio .calc-btn {
+  border-radius: 3px !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  border: 1px solid #3a3020 !important;
+  box-shadow:
+    0 3px 0 #1a1000,
+    inset 0 1px 0 rgba(255,200,80,0.1) !important;
+  transition: transform 0.06s, box-shadow 0.06s !important;
+}
+
+.skin-ham-radio .calc-btn:active,
+.skin-ham-radio .calc-btn.pressed {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #1a1000, inset 0 2px 4px rgba(0,0,0,0.6) !important;
+}
+
+.skin-ham-radio .panel,
+.skin-ham-radio .neu-card {
+  border-radius: 4px !important;
+  border: 1px solid #3a3020 !important;
+  background: #0f0c06 !important;
+  box-shadow: 2px 2px 0 #000, inset 0 1px 0 rgba(255,200,80,0.05) !important;
+}
+
+.skin-ham-radio .tab-bar { border-radius: 2px !important; }
+.skin-ham-radio .tab-item { border-radius: 2px !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SKIN: PIP-BOY — Fallout Atompunk CRT terminal
+   Deep phosphor green, scan lines, flicker, chunky bevel buttons
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes pip-boy-flicker {
+  0%   { opacity: 1; }
+  92%  { opacity: 1; }
+  93%  { opacity: 0.85; }
+  94%  { opacity: 1; }
+  96%  { opacity: 0.92; }
+  97%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+@keyframes pip-boy-scanline-drift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+/* Root: deep olive-black background, full-screen CRT feel */
+.skin-pip-boy,
+.skin-pip-boy body {
+  font-family: 'Courier New', Courier, monospace !important;
+  background: #010d01 !important;
+  animation: pip-boy-flicker 8s infinite !important;
+}
+
+/* CRT scan-lines + subtle vignette overlay (fixed, non-interactive) */
+.skin-pip-boy::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.18) 3px,
+      rgba(0, 0, 0, 0.18) 4px
+    );
+  animation: pip-boy-scanline-drift 6s linear infinite;
+}
+
+/* Outer phosphor glow vignette — dark corners, bright center */
+.skin-pip-boy::after {
+  content: '';
+  position: fixed;
+  inset: -10%;
+  pointer-events: none !important;
+  z-index: 9999;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 68%,
+    rgba(0, 0, 0, 0.92) 82%,
+    #010d01 100%
+  );
+}
+
+/* All text outside the document editor: phosphor green with multi-layer glow */
+.skin-pip-boy *:not(.doc-editor-content *):not(.color-preview-content *) {
+  font-family: 'Courier New', Courier, monospace !important;
+  color: #39ff5a !important;
+  text-shadow:
+    0 0 6px #39ff5a,
+    0 0 12px rgba(57, 255, 90, 0.5),
+    0 0 2px rgba(57, 255, 90, 0.8) !important;
+}
+/* Editor content: font forced, but color comes from inline styles (set by JS) */
+.skin-pip-boy .doc-editor-content * {
+  font-family: 'Courier New', Courier, monospace !important;
+}
+/* Color preview swatches (Color Converter / Contrast Checker): keep the exact chosen colors, not the theme's forced palette */
+.skin-pip-boy .color-preview-content * {
+  font-family: 'Courier New', Courier, monospace !important;
+  text-shadow: none !important;
+}
+.skin-pip-boy .doc-editor-content {
+  color: #39ff5a; /* default green, overridden by React inline style */
+  text-shadow: 0 0 6px #39ff5a, 0 0 2px rgba(57,255,90,0.8);
+}
+
+
+
+/* Display screen: deep black with inner CRT glow */
+.skin-pip-boy .display-screen {
+  background: #000e00 !important;
+  border: 2px solid #1f5c1f !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.95),
+    inset 0 0 12px rgba(57, 255, 90, 0.06),
+    0 0 20px rgba(57, 255, 90, 0.18),
+    0 0 40px rgba(57, 255, 90, 0.07) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Horizontal pixel-grid lines inside the screen */
+.skin-pip-boy .display-screen::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 5px,
+    rgba(57, 255, 90, 0.025) 5px,
+    rgba(57, 255, 90, 0.025) 6px
+  ) !important;
+}
+
+.skin-pip-boy .display-screen * {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 0.06em !important;
+  text-shadow:
+    0 0 8px #39ff5a,
+    0 0 16px rgba(57, 255, 90, 0.6),
+    0 0 2px rgba(57, 255, 90, 0.9) !important;
+}
+
+/* Chunky Fallout-style buttons — raised bevel, dark green body */
+.skin-pip-boy .calc-btn {
+  border-radius: 0 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 0.6rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  background: #081a08 !important;
+  /* 3D raised bevel: bright top-left, dark bottom-right */
+  border-top: 2px solid #2e7d2e !important;
+  border-left: 2px solid #2e7d2e !important;
+  border-bottom: 2px solid #051005 !important;
+  border-right: 2px solid #051005 !important;
+  box-shadow:
+    0 2px 0 #000,
+    inset 0 1px 0 rgba(57, 255, 90, 0.08) !important;
+  transition: transform 0.06s, box-shadow 0.06s !important;
+}
+
+/* Pressed: bevel flips inward */
+.skin-pip-boy .calc-btn:active,
+.skin-pip-boy .calc-btn.pressed {
+  border-top: 2px solid #051005 !important;
+  border-left: 2px solid #051005 !important;
+  border-bottom: 2px solid #2e7d2e !important;
+  border-right: 2px solid #2e7d2e !important;
+  transform: translateY(1px) !important;
+  box-shadow:
+    0 1px 0 #000,
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    inset 0 0 4px rgba(57, 255, 90, 0.15) !important;
+}
+
+/* Panels / cards: sharp corners, green border frame */
+.skin-pip-boy .panel:not(.color-preview-content),
+.skin-pip-boy .neu-card {
+  border-radius: 0 !important;
+  background: #010d01 !important;
+  border: 1px solid #1f5c1f !important;
+  box-shadow:
+    0 0 8px rgba(57, 255, 90, 0.08),
+    inset 0 0 20px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Push page content away from vignetted corners */
+.skin-pip-boy main > * {
+  padding-left: max(1rem, 6vw) !important;
+  padding-right: max(1rem, 6vw) !important;
+  padding-top: max(0.5rem, 3vh) !important;
+}
+
+/* Tab bar: inset terminal look */
+.skin-pip-boy .tab-bar {
+  border-radius: 0 !important;
+  background: #000e00 !important;
+  border: 1px solid #1f5c1f !important;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.7) !important;
+}
+
+.skin-pip-boy .tab-item {
+  border-radius: 0 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+.skin-pip-boy .tab-item.active {
+  background: #0d2b0d !important;
+  border: 1px solid #2e7d2e !important;
+  box-shadow: 0 0 8px rgba(57, 255, 90, 0.2) !important;
+}
+
+/* Inputs: terminal style */
+.skin-pip-boy .neu-input {
+  background: #000e00 !important;
+  border: 1px solid #1f5c1f !important;
+  border-radius: 0 !important;
+  caret-color: #39ff5a !important;
+}
+
+/* Volume slider: green phosphor thumb */
+.skin-pip-boy input[type="range"]::-webkit-slider-thumb {
+  border-radius: 0 !important;
+  background: #39ff5a !important;
+  box-shadow: 0 0 8px #39ff5a !important;
+  border: 1px solid #2e7d2e !important;
+}
+
+/* Chess pieces: keep the two sides distinguishable under the Pip-Boy green
+   override. The global `* { color:#39ff5a !important }` would make both sides
+   identical, so these higher-specificity rules split them into a bright
+   (white) glyph and a dimmer (black) glyph — all still phosphor green. */
+.skin-pip-boy .chess-piece.chess-w {
+  color: #d8ffdb !important;
+  text-shadow: 0 0 7px rgba(57,255,90,0.7), 0 0 2px rgba(57,255,90,0.95) !important;
+}
+.skin-pip-boy .chess-piece.chess-b {
+  color: #1e7a36 !important;
+  text-shadow: 0 0 5px rgba(57,255,90,0.45), 0 1px 2px rgba(0,0,0,0.55) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SKIN: GRAPHING CALC — TI-89 / Casio, light LCD, pixel fonts
+   ═══════════════════════════════════════════════════════════════ */
+.skin-graphing-calc {
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.skin-graphing-calc .display-screen {
+  background: #b8c4a0 !important;
+  border: 3px solid #444 !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 2px 2px 6px rgba(0,0,0,0.3),
+    inset -1px -1px 3px rgba(255,255,255,0.6) !important;
+  color: #0a1a0a !important;
+}
+
+.skin-graphing-calc .display-screen * {
+  font-family: 'Courier New', Courier, monospace !important;
+  color: #0a1a0a !important;
+  text-shadow: none !important;
+  letter-spacing: 0.04em !important;
+}
+
+.skin-graphing-calc .calc-btn {
+  border-radius: 2px !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  border: 2px solid #555 !important;
+  box-shadow:
+    0 3px 0 #333,
+    inset 0 1px 0 rgba(255,255,255,0.4) !important;
+  text-shadow: none !important;
+}
+
+.skin-graphing-calc .calc-btn:active,
+.skin-graphing-calc .calc-btn.pressed {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #333, inset 0 2px 3px rgba(0,0,0,0.3) !important;
+}
+
+.skin-graphing-calc .panel,
+.skin-graphing-calc .neu-card {
+  border-radius: 0 !important;
+  border: 2px solid #555 !important;
+  box-shadow: 2px 2px 0 #333 !important;
+}
+
+.skin-graphing-calc .tab-bar {
+  border-radius: 0 !important;
+  border: 2px solid #555 !important;
+}
+.skin-graphing-calc .tab-item { border-radius: 0 !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SKIN: AUDIO RACK — Brushed steel, Akai/Roland rack hardware
+   ═══════════════════════════════════════════════════════════════ */
+.skin-audio-rack {
+  font-family: 'Arial Narrow', Arial, sans-serif !important;
+  background: #0d0d0d !important;
+}
+
+.skin-audio-rack .display-screen {
+  background: #050a05 !important;
+  border: 1px solid #2a2a2a !important;
+  border-top: 1px solid #1a1a1a !important;
+  border-radius: 3px !important;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.9),
+    0 0 12px rgba(100,255,100,0.1) !important;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.15) 3px,
+    rgba(0,0,0,0.15) 4px
+  ) !important;
+}
+
+.skin-audio-rack .display-screen * {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 0.06em !important;
+  text-shadow: 0 0 8px rgba(100,255,100,0.8), 0 0 2px rgba(100,255,100,0.5) !important;
+}
+
+.skin-audio-rack .calc-btn {
+  border-radius: 2px !important;
+  font-family: 'Arial Narrow', Arial, sans-serif !important;
+  font-size: 0.6rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  border-top: 1px solid #3a3a3a !important;
+  border-left: 1px solid #3a3a3a !important;
+  border-right: 1px solid #111 !important;
+  border-bottom: 2px solid #111 !important;
+  box-shadow:
+    0 2px 0 #000,
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+
+.skin-audio-rack .calc-btn:active,
+.skin-audio-rack .calc-btn.pressed {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 0 #000, inset 0 2px 4px rgba(0,0,0,0.7) !important;
+}
+
+.skin-audio-rack .panel,
+.skin-audio-rack .neu-card {
+  border-radius: 3px !important;
+  border: 1px solid #2a2a2a !important;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 1px,
+    rgba(255,255,255,0.01) 1px,
+    rgba(255,255,255,0.01) 2px
+  ) !important;
+}
+
+.skin-audio-rack .tab-bar { border-radius: 2px !important; }
+.skin-audio-rack .tab-item { border-radius: 1px !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SKIN: RETRO SCI-FI — Windows 95 / LCARS space station hybrid
+   ═══════════════════════════════════════════════════════════════ */
+.skin-retro-scifi {
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.skin-retro-scifi .display-screen {
+  background: #000820 !important;
+  border: 3px solid hsl(var(--border)) !important;
+  border-top: 3px solid #a0a8ff !important;
+  border-left: 3px solid #a0a8ff !important;
+  border-bottom: 3px solid #202860 !important;
+  border-right: 3px solid #202860 !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.8),
+    0 0 16px rgba(0,255,255,0.12) !important;
+}
+
+.skin-retro-scifi .display-screen * {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 0 8px rgba(0,255,255,0.7), 0 0 2px rgba(0,255,255,0.4) !important;
+}
+
+.skin-retro-scifi .calc-btn {
+  border-radius: 0 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  /* Win95-style raised bevel */
+  border-top: 2px solid #a0a8ff !important;
+  border-left: 2px solid #a0a8ff !important;
+  border-bottom: 2px solid #202860 !important;
+  border-right: 2px solid #202860 !important;
+  box-shadow: none !important;
+}
+
+.skin-retro-scifi .calc-btn:active,
+.skin-retro-scifi .calc-btn.pressed {
+  border-top: 2px solid #202860 !important;
+  border-left: 2px solid #202860 !important;
+  border-bottom: 2px solid #a0a8ff !important;
+  border-right: 2px solid #a0a8ff !important;
+  transform: none !important;
+}
+
+.skin-retro-scifi .panel,
+.skin-retro-scifi .neu-card {
+  border-radius: 0 !important;
+  border-top: 2px solid #a0a8ff !important;
+  border-left: 2px solid #a0a8ff !important;
+  border-bottom: 2px solid #202860 !important;
+  border-right: 2px solid #202860 !important;
+}
+
+.skin-retro-scifi .tab-bar {
+  border-radius: 0 !important;
+  border: 2px inset hsl(var(--border)) !important;
+}
+.skin-retro-scifi .tab-item { border-radius: 0 !important; }
