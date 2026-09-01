@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Send } from 'lucide-react';
-// import { appData } from "@/api/localClient";
+import { appData } from '@/api/localClient';
 import { cn } from '@/lib/utils';
 import GroupsTab from '@/components/messages/GroupsTab';
 import VoiceInputButton from '@/components/VoiceInputButton.jsx';
@@ -88,8 +88,9 @@ export default function Messages() {
     if (!content.trim()) return;
 
     let targetEmail = '';
-    if (idInput.trim()) {
-      const match = directory.find((u) => u.contact_id === idInput.trim());
+    const normalizedInput = String(idInput || '').trim().toUpperCase();
+    if (normalizedInput) {
+      const match = directory.find((u) => String(u.contact_id || '').toUpperCase() === normalizedInput);
       if (!match) { setError(t('csErrorNoUser')); return; }
       targetEmail = match.email;
     } else if (contactEmail) {

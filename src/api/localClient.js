@@ -54,6 +54,33 @@ const DEMO_USER = {
   password: 'demo123',
 };
 
+const normalizeContactId = (value) => String(value ?? '').trim().toUpperCase();
+
+const generateContactId = () => `USER-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+const normalizeUsersWithContactIds = (users = []) => {
+  const normalized = users.map((user) => ({ ...user }));
+  const seen = new Set();
+
+  normalized.forEach((user) => {
+    if (!user || typeof user !== 'object') return;
+
+    let candidate = typeof user.contact_id === 'string' ? normalizeContactId(user.contact_id) : '';
+    if (!candidate) {
+      candidate = generateContactId();
+    }
+
+    while (seen.has(candidate)) {
+      candidate = generateContactId();
+    }
+
+    user.contact_id = candidate;
+    seen.add(candidate);
+  });
+
+  return normalized;
+};
+
 const readStorage = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -72,7 +99,9 @@ const readStorage = () => {
       return seeded;
     }
     const parsed = JSON.parse(raw);
-    return {
+    const users = Array.isArray(parsed.User) && parsed.User.length ? parsed.User : [DEMO_USER];
+    const normalizedUsers = normalizeUsersWithContactIds(users);
+    const repaired = {
       Note: Array.isArray(parsed.Note) ? parsed.Note : [],
       Communication: Array.isArray(parsed.Communication) ? parsed.Communication : [],
       Contact: Array.isArray(parsed.Contact) ? parsed.Contact : [],
@@ -80,8 +109,14 @@ const readStorage = () => {
       Conversation: Array.isArray(parsed.Conversation) ? parsed.Conversation : [],
       Waypoint: Array.isArray(parsed.Waypoint) ? parsed.Waypoint : [],
       UsernameAlias: Array.isArray(parsed.UsernameAlias) ? parsed.UsernameAlias : [],
-      User: Array.isArray(parsed.User) && parsed.User.length ? parsed.User : [DEMO_USER],
+      User: normalizedUsers,
     };
+
+    if (normalizedUsers.some((user, index) => user.contact_id !== users[index]?.contact_id)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(repaired));
+    }
+
+    return repaired;
   } catch {
     const seeded = {
       Note: [],
@@ -100,6 +135,24 @@ const readStorage = () => {
 
 const writeStorage = (db) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+};
+
+const syncLoggedInUserFlag = (currentUser = null) => {
+  try {
+    const db = readStorage();
+    const authUser = currentUser || JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+    if (!authUser || !authUser.id) return db;
+
+    db.User = db.User.map((user) => {
+      const sameUser = user.id === authUser.id || String(user.username || '').toLowerCase() === String(authUser.username || '').toLowerCase() || String(user.email || '').toLowerCase() === String(authUser.email || '').toLowerCase();
+      return { ...user, is_me: sameUser };
+    });
+
+    writeStorage(db);
+    return db;
+  } catch {
+    return readStorage();
+  }
 };
 
 const getUserRecord = (emailOrUsername) => {
@@ -233,13 +286,36 @@ const authApi = {
   me: async () => {
     const storedUser = localStorage.getItem(AUTH_KEY);
     if (storedUser) {
-      return JSON.parse(storedUser);
+      try {
+        const parsed = JSON.parse(storedUser);
+        const db = syncLoggedInUserFlag(parsed);
+        const match = db.User.find((user) => user.id === parsed?.id || String(user.username || '').toLowerCase() === String(parsed?.username || '').toLowerCase() || String(user.email || '').toLowerCase() === String(parsed?.email || '').toLowerCase());
+        const repaired = {
+          ...(parsed || {}),
+          ...(match || {}),
+          is_me: true,
+          contact_id: (parsed?.contact_id || match?.contact_id || generateContactId()).trim() || generateContactId(),
+        };
+
+        if (!parsed?.contact_id || parsed.contact_id !== repaired.contact_id || !match || !db.User.some((user) => user.id === repaired.id && user.is_me)) {
+          localStorage.setItem(AUTH_KEY, JSON.stringify(repaired));
+          syncLoggedInUserFlag(repaired);
+        }
+
+        return repaired;
+      } catch {
+        localStorage.removeItem(AUTH_KEY);
+        return { ...DEMO_USER, contact_id: DEMO_USER.contact_id || generateContactId() };
+      }
     }
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
-      return { ...DEMO_USER, token };
+      const demo = { ...DEMO_USER, contact_id: DEMO_USER.contact_id || generateContactId(), is_me: true, token };
+      localStorage.setItem(AUTH_KEY, JSON.stringify(demo));
+      syncLoggedInUserFlag(demo);
+      return demo;
     }
-    return { ...DEMO_USER };
+    return { ...DEMO_USER, contact_id: DEMO_USER.contact_id || generateContactId(), is_me: true };
   },
   loginViaUsernamePassword: async (username, password) => {
     const normalized = String(username || '').trim().toLowerCase();
@@ -257,21 +333,29 @@ const authApi = {
       throw new Error('Username not found');
     }
 
+    const db = readStorage();
+    const currentUser = db.User.find((entry) => entry.id === user.id || String(entry.username || '').toLowerCase() === normalized) || user;
+    const userWithContactId = {
+      ...currentUser,
+      contact_id: currentUser.contact_id || generateContactId(),
+    };
+
     const providedPassword = String(password ?? '');
-    const storedPassword = String(user.password ?? '');
+    const storedPassword = String(userWithContactId.password ?? '');
     const isLegacyDemoUser = !storedPassword && user.username === 'demo' && providedPassword === 'demo123';
     if (!isLegacyDemoUser && storedPassword !== providedPassword) {
       throw new Error('Invalid username or password');
     }
 
-    const repairedUser = { ...user, password: storedPassword || providedPassword };
-    const db = readStorage();
+    const repairedUser = { ...userWithContactId, password: storedPassword || providedPassword, is_me: true };
     const existingUserIndex = db.User.findIndex((entry) => entry.id === user.id || entry.username?.toLowerCase() === normalized);
+    db.User = db.User.map((entry) => ({ ...entry, is_me: entry.id === repairedUser.id || String(entry.username || '').toLowerCase() === normalized || String(entry.email || '').toLowerCase() === String(repairedUser.email || '').toLowerCase() }));
     if (existingUserIndex >= 0) {
-      db.User[existingUserIndex] = { ...db.User[existingUserIndex], ...repairedUser };
+      db.User[existingUserIndex] = { ...db.User[existingUserIndex], ...repairedUser, is_me: true };
     } else {
       db.User.push(repairedUser);
     }
+    db.User = db.User.map((entry) => ({ ...entry, is_me: entry.id === repairedUser.id || String(entry.username || '').toLowerCase() === normalized || String(entry.email || '').toLowerCase() === String(repairedUser.email || '').toLowerCase() }));
     writeStorage(db);
     clearLegacyAuth();
     localStorage.setItem(AUTH_KEY, JSON.stringify(repairedUser));
@@ -300,12 +384,13 @@ const authApi = {
       email,
       full_name: normalized,
       username: normalized,
-      contact_id: `USER-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      contact_id: generateContactId(),
       is_me: true,
       created_by_id: `user-${Date.now()}`,
       password: String(password),
     };
 
+    db.User = db.User.map((entry) => ({ ...entry, is_me: false }));
     db.User = [user, ...db.User];
     db.UsernameAlias = [{
       id: `alias-${Date.now()}`,
@@ -383,7 +468,11 @@ const authApi = {
 const functionsApi = {
   invoke: async (name, payload = {}) => {
     if (name === 'listAppUsers') {
-      const users = readStorage().User.filter((user) => !user.deleted);
+      const currentUser = await authApi.me();
+      const users = readStorage().User.filter((user) => !user.deleted).map((user) => ({
+        ...user,
+        is_me: user.id === currentUser.id || String(user.username || '').toLowerCase() === String(currentUser.username || '').toLowerCase() || String(user.email || '').toLowerCase() === String(currentUser.email || '').toLowerCase(),
+      }));
       return { data: { users } };
     }
 

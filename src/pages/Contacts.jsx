@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, Phone, MessageSquare, Trash2, IdCard, Search } from 'lucide-react';
+import { appData } from '@/api/localClient';
 import ContactTagsInput from '@/components/contacts/ContactTagsInput';
 import { useLanguage } from '@/lib/LanguageContext.jsx';
 
@@ -23,15 +24,27 @@ export default function Contacts() {
   const [editNotes, setEditNotes] = useState('');
 
   const load = useCallback(async () => {
-    const user = await appData.auth.me();
-    const res = await appData.functions.invoke('listAppUsers', {});
-    const users = res.data.users || [];
-    setDirectory(users);
-    const meEntry = users.find((u) => u.is_me);
-    setMyId(meEntry?.contact_id || '');
-    const myContacts = await appData.entities.Contact.filter({ created_by_id: user.id }, '-created_date', 200);
-    setContacts(myContacts);
-    setLoading(false);
+    try {
+      const user = await appData.auth.me();
+      const res = await appData.functions.invoke('listAppUsers', {});
+      const users = res.data.users || [];
+      setDirectory(users);
+
+      const meEntry = users.find((u) => u.id === user.id || u.email === user.email || u.username === user.username) || users.find((u) => u.is_me) || user;
+      const resolvedContactId = meEntry?.contact_id || user?.contact_id || '';
+      setMyId(resolvedContactId);
+
+      const myContacts = await appData.entities.Contact.filter({ created_by_id: user.id }, '-created_date', 200);
+      setContacts(myContacts);
+    } catch (error) {
+      console.error('Contacts load failed:', error);
+      const fallbackUser = await appData.auth.me().catch(() => null);
+      setMyId(fallbackUser?.contact_id || '');
+      setDirectory([]);
+      setContacts([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -39,19 +52,22 @@ export default function Contacts() {
   const handleAdd = async (e) => {
     e.preventDefault();
     setError('');
-    if (!idInput.trim()) return;
-    const match = directory.find((u) => u.contact_id === idInput.trim());
+    const normalizedInput = String(idInput || '').trim().toUpperCase();
+    if (!normalizedInput) return;
+    const match = directory.find((u) => String(u.contact_id || '').toUpperCase() === normalizedInput);
     if (!match) { setError(t('csErrorNoUser')); return; }
     if (match.is_me) { setError(t('csErrorOwnId')); return; }
     if (contacts.some((c) => c.contact_id === match.contact_id)) { setError(t('csErrorAlreadyContact')); return; }
     setAdding(true);
     try {
+      const currentUser = await appData.auth.me();
       await appData.entities.Contact.create({
         contact_id: match.contact_id,
         email: match.email,
         display_name: nameInput.trim() || match.full_name || match.email,
         tags: tagsInput,
         notes: notesInput.trim(),
+        created_by_id: currentUser.id,
       });
       setIdInput('');
       setNameInput('');

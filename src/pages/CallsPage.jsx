@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Phone, PhoneCall, PhoneIncoming, PhoneOutgoing, PhoneOff, History, CalendarClock, X } from 'lucide-react';
-// import { appData } from "@/api/localClient";
+import { appData } from '@/api/localClient';
 import { toast } from '@/components/ui/use-toast';
 import CallNoteEditor from '@/components/calls/CallNoteEditor';
 import ScheduleCallForm from '@/components/calls/ScheduleCallForm';
@@ -72,8 +72,9 @@ export default function CallsPage() {
   }, [activeCall?.id, upcoming.length]);
 
   const resolveTarget = () => {
-    if (idInput.trim()) {
-      const match = directory.find((u) => u.contact_id === idInput.trim());
+    const normalizedInput = String(idInput || '').trim().toUpperCase();
+    if (normalizedInput) {
+      const match = directory.find((u) => String(u.contact_id || '').toUpperCase() === normalizedInput);
       if (!match) return { error: t('csErrorNoUser') };
       return { target: match.email };
     }
@@ -126,8 +127,9 @@ export default function CallsPage() {
 
   const handleSchedule = async ({ contactEmail: ce, idInput: ii, scheduledAt }) => {
     let target = '';
-    if (ii.trim()) {
-      const match = directory.find((u) => u.contact_id === ii.trim());
+    const normalizedInput = String(ii || '').trim().toUpperCase();
+    if (normalizedInput) {
+      const match = directory.find((u) => String(u.contact_id || '').toUpperCase() === normalizedInput);
       if (!match) return { error: t('csErrorNoUser') };
       target = match.email;
     } else if (ce) {
